@@ -303,7 +303,7 @@ long musicDB::updateAlbumCover()	//album must be set before calling function
 
 	mysql_real_escape_string(&dbaseConnection, tempthumblocation, thumblocation, strlen(thumblocation));
 
-	sprintf(SQLStmt, "Update Albums set Cover = TRIM('%s') where AlbumId = %d;" ,thumblocation ,albumId);
+	sprintf(SQLStmt, "Update Albums set Cover = TRIM('%s') where AlbumId = %d;" ,tempthumblocation ,albumId);
 	if (mysql_query(&dbaseConnection, SQLStmt))
 	{
 		fprintf(stderr, " updateAlbumCover updating Cover\n");

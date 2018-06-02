@@ -7,5 +7,4 @@ Required Libraries -> taglib
 
 install
 sudo apt-get install libtag1-dev
-
-the file config.conf should be placed in the same folder as the executable
+sudo apt-get install libmysql++-dev

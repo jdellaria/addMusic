@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <stdio.h>
+
 
 #include <cstdlib>
 #include <sys/dir.h>
@@ -49,6 +49,7 @@ string jpgName = "none";
 
 void recurseDo(char const* directoyEntry, int  directoyEntryType);
 void deleteDirectoryDo(char const* directoyEntry, int directoyEntryType);
+int isAppleDropping(char* const fileName);
 int isMP3(char* const fileName);
 int isJPG(char* const fileName);
 int get(char* const fileName, char* const grouping);
@@ -128,6 +129,7 @@ void recurseDo(char const* directoyEntry, int directoyEntryType)
 	}
 	if (directoyEntryType == DIRECTORYENTRYTYPE_REG)
 	{
+
 		found = sourceFile.find_last_of("/\\");
 		fileName = sourceFile.substr(found+1);
 		tempString = sourceFile.substr(0,found);
@@ -143,80 +145,85 @@ void recurseDo(char const* directoyEntry, int directoyEntryType)
 
 		cout << "Artist: " << ArtistName << " - Album: " << AlbumName << endl;
 		printf("%s\n%s\n\n", directoyEntry,destinationFileName.c_str());
-		returnValue = myFile.copy(sourceFile,destinationFileName);
 
-		if (returnValue == 0) // if success
+		if (!isAppleDropping((char* const)fileName.c_str())) // Apple leaves files thatnbegin with ._ and we need to forget about them.
 		{
-			message = "Copying file:";
-			message.append(sourceFile);
-			message.append(" to -> ");
-			message.append(destinationFileName);
-			myLog.print(logInformation, message);
-		}
-		else
-		{
-			message = "Error copying file:";
-			message.append(myFile.errorMessageBuffer);
-			message.append(": ");
-			message.append(sourceFile);
-			message.append(" to -> ");
-			message.append(destinationFileName);
-			myLog.print(logError, message);
-		}
 
-		printf("%s-->%s\n", directoyEntry,destinationFileName.c_str());
-		printf("-----%s - returned %d errno %d\n\n",destinationFileName.c_str(),returnValue,errno);
+			returnValue = myFile.copy(sourceFile,destinationFileName);
 
-		if (isMP3((char* const)destinationFileName.c_str()))
-		{
-			cout << "recurseDo: isMP3"  << endl;
-			get ((char* const)destinationFileName.c_str(), (char* const)"Album");
-			sprintf(albumIDString, "%ld", lAlbum);
-			jpgThumbName = destinationDir + ArtistName + "/" + AlbumName + "/" + albumIDString + ".w300.thumb";
-			myDB.setThumbLocation ((char* const)jpgThumbName.c_str());
-			myDB.updateAlbumCover();
-			cout << "updateAlbumCover: " << jpgThumbName  << endl;
-		}
-		if (isJPG((char* const)destinationFileName.c_str()))
-		{
-			if (gotCoverJPG == 0)
+			if (returnValue == 0) // if success
 			{
-				jpgName = sourceFile;
+				message = "Copying file:";
+				message.append(sourceFile);
+				message.append(" to -> ");
+				message.append(destinationFileName);
+				myLog.print(logInformation, message);
 			}
-			if (newAlbum == 0) //make sure that we have album id's
+			else
 			{
-				returnValue = myFile.copy(jpgName,jpgThumbName);
+				message = "Error copying file:";
+				message.append(myFile.errorMessageBuffer);
+				message.append(": ");
+				message.append(sourceFile);
+				message.append(" to -> ");
+				message.append(destinationFileName);
+				myLog.print(logError, message);
+			}
 
-				if (returnValue == 0) // if success
+			printf("%s-->%s\n", directoyEntry,destinationFileName.c_str());
+			printf("-----%s - returned %d errno %d\n\n",destinationFileName.c_str(),returnValue,errno);
+
+			if (isMP3((char* const)destinationFileName.c_str()))
+			{
+				cout << "recurseDo: isMP3"  << endl;
+				get ((char* const)destinationFileName.c_str(), (char* const)"Album");
+				sprintf(albumIDString, "%ld", lAlbum);
+				jpgThumbName = destinationDir + ArtistName + "/" + AlbumName + "/" + albumIDString + ".w300.thumb";
+				myDB.setThumbLocation ((char* const)jpgThumbName.c_str());
+				myDB.updateAlbumCover();
+				cout << "updateAlbumCover: " << jpgThumbName  << endl;
+			}
+			if (isJPG((char* const)destinationFileName.c_str()))
+			{
+				if (gotCoverJPG == 0)
 				{
-					message = "Copying file:";
-					message.append(jpgName);
-					message.append(" to -> ");
-					message.append(jpgThumbName);
-					myLog.print(logInformation, message);
+					jpgName = sourceFile;
 				}
-				else
+				if (newAlbum == 0) //make sure that we have album id's
 				{
-					message = "Error copying file:";
-					message.append(myFile.errorMessageBuffer);
-					message.append(": ");
-					message.append(jpgName);
-					message.append(" to -> ");
-					message.append(jpgThumbName);
-					myLog.print(logError, message);
+					returnValue = myFile.copy(jpgName,jpgThumbName);
+
+					if (returnValue == 0) // if success
+					{
+						message = "Copying file:";
+						message.append(jpgName);
+						message.append(" to -> ");
+						message.append(jpgThumbName);
+						myLog.print(logInformation, message);
+					}
+					else
+					{
+						message = "Error copying file:";
+						message.append(myFile.errorMessageBuffer);
+						message.append(": ");
+						message.append(jpgName);
+						message.append(" to -> ");
+						message.append(jpgThumbName);
+						myLog.print(logError, message);
+					}
 				}
+				if (strcasecmp (fileName.c_str(),"cover.jpg") == 0)
+				{
+					printf("got Cover.jpg");
+					gotCoverJPG = 1;
+				}
+				if (strcasecmp (fileName.c_str(),"cover.jpeg") == 0)
+				{
+					printf("got Cover.jpeg");
+					gotCoverJPG = 1;
+				}
+				printf("thumb %s\n\n", jpgThumbName.c_str());
 			}
-			if (strcasecmp (fileName.c_str(),"cover.jpg") == 0)
-			{
-				printf("got Cover.jpg");
-				gotCoverJPG = 1;
-			}
-			if (strcasecmp (fileName.c_str(),"cover.jpeg") == 0)
-			{
-				printf("got Cover.jpeg");
-				gotCoverJPG = 1;
-			}
-			printf("thumb %s\n\n", jpgThumbName.c_str());
 		}
 	}
 }
@@ -232,7 +239,7 @@ int get(char* const fileName,char* const grouping)
 
 		TagLib::Tag *tag = f.tag();
 
-		myDB.setSongName ( tag->title());
+		(void)myDB.setSongName(tag->title());
 		cout << "Song Name: " << tag->title()  << endl;
 		myDB.setArtist (tag->artist());
 		cout << "artist(): " << tag->artist()  << endl;
@@ -287,6 +294,16 @@ int get(char* const fileName,char* const grouping)
 int isMP3(char* const fileName)
 {
 	if (strcasecmp (&fileName[strlen(fileName)-3],"MP3") == 0)
+	{
+		return (1);
+	}
+	return(0);
+}
+
+
+int isAppleDropping(char* const fileName)
+{
+	if (strstr (&fileName[0],"._") != 0) //strstr returns a pointer to the string if it is found. Otherwise a 0 is returned.
 	{
 		return (1);
 	}
