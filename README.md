@@ -11,3 +11,5 @@ install
 sudo apt-get install libtag1-dev
 
 sudo apt-get install libmysql++-dev
+
+sudo apt install ffmpeg // for extracting cover image
